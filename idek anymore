@@ -1,1 +1,110 @@
-
+@echo off
+color 02
+echo Run as administrator
+net sessions
+if %errorlevel%==0 (
+echo Success!
+) else (
+echo NO admin, please run with Administrative rights...
+pause
+exit
+)
+:Menu 
+echo Choose one:
+echo 1. Windows Server 2016
+echo 2. Windows 10
+CHOICE /C 12 /M "Enter your choice:"
+PAUSE
+if ERRORLEVEL 2 goto Two
+if ERRORLEVEL 1 goto One
+:One
+echo Aye Sir
+REM Passwords must be changed every 90 days
+net accounts /maxpwage:90
+REM Passwords can’t be changed before 5 days
+net accounts /minpwage:5
+REM Passwords must be 12 characters long
+net accounts /minpwlen:12
+REM Display current password policy
+echo Policy updated
+goto:lockout
+:lockout
+REM Account lockout duration 30 min
+net accounts /lockoutduration:30
+REM Lockout threshold to 5 bad logs
+net accounts /lockoutthreshold:5
+REM Lockout counter after 10 min
+net accounts /lockoutwindow:10
+REM Display current Lockout policy
+echo Lockout updated
+goto:firewall
+:firewall
+REM Enabling firewall
+echo Enabling firewall
+netsh advfirewall set allprofiles state on
+echo Firewall on
+goto:media
+:media
+REM Delete media files
+echo clearing media files out now
+del /s "%homedrive%\mediafiles.txt" /f /q
+del /s "%homedrive%\*.mp3" /f /q /a
+del /s "%homedrive%\*.mp4" /f /q /a
+del /s "%homedrive%\*.m4v" /f /q /a
+del /s "%homedrive%\*.wmv" /f /q /a
+del /s "%homedrive%\*.mid" /f /q /a
+del /s "%homedrive%\*.mov" /f /q /a
+del /s "%homedrive%\*.avi" /f /q /a
+del /s "%homedrive%\*.wma" /f /q /a
+del /s "%homedrive%\*.3gp" /f /q /a
+echo Media cleared 
+cd %homedrive%\
+dir /s /a /b /o-d *.mp3 *.mp4 *.avi *.wmv *.mid *.mov *.m4v *.3gp *.wma *.wav >> mediafiles.txt
+goto:filefinder
+:filefinder
+REM Find the no no files
+echo Finding the spooky files
+appwiz.cpl
+cd %homedrive%\
+dir /s /a /b /o-d *.zip *.exe *.msi >> spookyfiles.txt
+goto:disableac
+:disableac
+REM Disabled accounts
+echo Disabling accounts admin and guest
+net user Administrator /active:no
+net user Guest /active:no
+goto:audit
+:audit
+REM auditing
+echo setting audit to suc and fail all
+auditpol /set /category:* /success:enable
+auditpol /set /category:* /failure:enable
+goto:registry
+:registry
+REM limit use of blank pw
+reg ADD HKLM\SYSTEM\CurrentControlSet\Control\Lsa /v LimitBlankPasswordUse /t REG_DWORD /d 1 /f
+REM disable display last user 
+reg ADD HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System /v dontdisplaylastusername /t REG_DWORD /d 1 /f
+REM disable pw storage 
+reg ADD HKLM\SYSTEM\CurrentControlSet\Control\Lsa /v disabledomaincreds /t REG_DWORD /d 1 /f
+REM disable annon user perms from all 
+reg ADD HKLM\SYSTEM\CurrentControlSet\Control\Lsa /v everyoneincludesanonymous /t REG_DWORD /d 0 /f
+REM disable undock without log on 
+reg ADD HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System /v undockwithoutlogon /t REG_DWORD /d 0 /f
+REM enable CTRL ALT DEL
+reg ADD HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System /v DisableCAD /t REG_DWORD /d 0 /f
+REM set idel timer 
+reg ADD HKLM\SYSTEM\CurrentControlSet\services\LanmanServer\Parameters /v autodisconnect /t REG_DWORD /d 45 /f
+REM show hidden files 
+reg ADD HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced /v Hidden /t REG_DWORD /d 1 /f
+REM show super hidden 
+reg ADD HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced /v ShowSuperHidden /t REG_DWORD /d 1 /f
+REM disable sticky keys
+reg ADD "HKU\.DEFAULT\Control Panel\Accessibility\StickyKeys" /v Flags /t REG_SZ /d 506 /f
+REM disbale autoruns
+reg ADD HKCU\SYSTEM\CurrentControlSet\Services\CDROM /v AutoRun /t REG_DWORD /d 1 /f
+REM require strong session key 
+reg ADD HKLM\SYSTEM\CurrentControlSet\services\Netlogon\Parameters /v RequireStrongKey /t REG_DWORD /d 1 /f
+REM disable admin auto log on 
+reg ADD "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" /v AutoAdminLogon /t REG_DWORD /d 0 /f
+goto:
