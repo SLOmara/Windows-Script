@@ -107,4 +107,6 @@ REM require strong session key
 reg ADD HKLM\SYSTEM\CurrentControlSet\services\Netlogon\Parameters /v RequireStrongKey /t REG_DWORD /d 1 /f
 REM disable admin auto log on 
 reg ADD "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" /v AutoAdminLogon /t REG_DWORD /d 0 /f
-goto:
+pause
+echo Complete please exit and double check everything sorry if you lost points.
+pause
