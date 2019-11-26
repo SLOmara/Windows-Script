@@ -11,11 +11,9 @@ exit
 )
 :Menu 
 echo Choose one:
-echo 1. Windows Server 2016
-echo 2. Windows 10
-CHOICE /C 12 /M "Enter your choice:"
+echo 1. IM READY!
+CHOICE /C 1 /M "Enter your choice:"
 PAUSE
-if ERRORLEVEL 2 goto Two
 if ERRORLEVEL 1 goto One
 :One
 echo Aye Sir
@@ -43,6 +41,15 @@ REM Enabling firewall
 echo Enabling firewall
 netsh advfirewall set allprofiles state on
 echo Firewall on
+echo Setting rules 
+netsh advfirewall firewall set rule name="Remote Assistance (SSDP UDP-In)" new enable=no 
+netsh advfirewall firewall set rule name="Remote Assistance (TCP-In)" new enable=no 
+netsh advfirewall firewall set rule name="Telnet Server" new enable=no 
+netsh advfirewall firewall set rule name="netcat" new enable=no
+netsh advfirewall firewall set rule name="Remote Assistance (DCOM-In)" new enable=no 
+netsh advfirewall firewall set rule name="Remote Assistance (PNRP-In)" new enable=no 
+netsh advfirewall firewall set rule name="Remote Assistance (RA Server TCP-In)" new enable=no 
+netsh advfirewall firewall set rule name="Remote Assistance (SSDP TCP-In)" new enable=no 
 goto:media
 :media
 REM Delete media files
@@ -91,7 +98,7 @@ REM disable annon user perms from all
 reg ADD HKLM\SYSTEM\CurrentControlSet\Control\Lsa /v everyoneincludesanonymous /t REG_DWORD /d 0 /f
 REM disable undock without log on 
 reg ADD HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System /v undockwithoutlogon /t REG_DWORD /d 0 /f
-REM enable CTRL ALT DEL
+REM disable CTRL ALT DEL
 reg ADD HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System /v DisableCAD /t REG_DWORD /d 0 /f
 REM set idel timer 
 reg ADD HKLM\SYSTEM\CurrentControlSet\services\LanmanServer\Parameters /v autodisconnect /t REG_DWORD /d 45 /f
@@ -107,6 +114,22 @@ REM require strong session key
 reg ADD HKLM\SYSTEM\CurrentControlSet\services\Netlogon\Parameters /v RequireStrongKey /t REG_DWORD /d 1 /f
 REM disable admin auto log on 
 reg ADD "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" /v AutoAdminLogon /t REG_DWORD /d 0 /f
+REM win auto update
+reg add HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU /v AutoInstallMinorUpdates /t REG_DWORD /d 1 /f
+reg add HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU /v NoAutoUpdate /t REG_DWORD /d 0 /f
+reg add HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU /v AUOptions /t REG_DWORD /d 4 /freg add HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer /v NoWindowsUpdate /t REG_DWORD /d 0 /f
+reg add "HKLM\SYSTEM\Internet Communication Management\Internet Communication" /v DisableWindowsUpdateAccess /t REG_DWORD /d 0 /f
+reg add HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\WindowsUpdate /v DisableWindowsUpdateAccess /t REG_DWORD /d 0 /f
+reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update" /v AUOptions /t REG_DWORD /d 4 /f
+reg add HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate /v DisableWindowsUpdateAccess /t REG_DWORD /d 0 /f
+reg add HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate /v ElevateNonAdmins /t REG_DWORD /d 0 /f
+REM auditing acces of GSO
+reg ADD HKLM\SYSTEM\CurrentControlSet\Control\Lsa /v auditbaseobjects /t REG_DWORD /d 1 /f
+goto:DNSFlush
+:DNSFlush
+ipconfig /flushdns >nul
+echo DNS flushed
 pause
 echo Complete please exit and double check everything sorry if you lost points.
 pause
+goto:Menu
